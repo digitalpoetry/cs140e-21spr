@@ -14,17 +14,18 @@
 static const unsigned gpio_set0  = (GPIO_BASE + 0x1C);
 static const unsigned gpio_clr0  = (GPIO_BASE + 0x28);
 static const unsigned gpio_lev0  = (GPIO_BASE + 0x34);
+static const unsigned gpio_lev1  = (GPIO_BASE + 0x38);
 
 void gpio_function_select(unsigned pin, unsigned function_code) {
     int total_registers = 6;
-    int register_width = 4;
+    int register_increment = 4;
     int range_per_register = 10;
     int selection_width = 0x03;
     
     // Read current state
     uint32_t current_bits[total_registers];
     for (int i = 0; i < total_registers; i++) {
-        current_bits[i] = GET32(GPIO_BASE + (i * register_width));
+        current_bits[i] = GET32(GPIO_BASE + (i * register_increment));
     }
     // Calculate new state
     int offset = (selection_width * (pin % range_per_register));
@@ -33,7 +34,7 @@ void gpio_function_select(unsigned pin, unsigned function_code) {
     current_bits[pin / range_per_register] = cleared_selection | (function_code << offset);
     // Write new state
     for (int i = 0; i < total_registers; i++) {
-        PUT32(GPIO_BASE + (i * register_width), current_bits[i]);
+        PUT32(GPIO_BASE + (i * register_increment), current_bits[i]);
     }
 }
 
@@ -80,8 +81,8 @@ void gpio_set_input(unsigned pin) {
 
 // return the value of <pin>
 int gpio_read(unsigned pin) {
-    unsigned v = 0;
-
-    // implement.
-    return v;
+    uint32_t current_bits[] = { GET32(gpio_lev0), GET32(gpio_lev1) };
+    uint32_t pin_div = pin / 32;
+    uint32_t pin_mod = pin % 32;
+    return (current_bits[pin_div] >> pin_mod) & 0b1;
 }
