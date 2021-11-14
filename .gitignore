@@ -6,3 +6,8 @@
 *.swo
 staff-*.txt
 .gdb_history
+
+*.o
+*.bin
+*.elf
+*.list
